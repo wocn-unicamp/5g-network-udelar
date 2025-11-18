@@ -1,0 +1,27 @@
+Open5GS daemon v2.7.6
+
+11/18 01:17:02.037: [app] INFO: Configuration: '/etc/open5gs/custom/upf.yaml' (../lib/app/ogs-init.c:144)
+11/18 01:17:02.037: [app] INFO: File Logging: '/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+11/18 01:17:02.130: [metrics] INFO: metrics_server() [http://upf.open5gs.org]:9090 (../lib/metrics/prometheus/context.c:297)
+11/18 01:17:02.130: [pfcp] INFO: pfcp_server() [10.33.33.4]:8805 (../lib/pfcp/path.c:30)
+11/18 01:17:02.130: [gtp] INFO: gtp_server() [10.33.33.4]:2152 (../lib/gtp/path.c:30)
+11/18 01:17:02.132: [app] INFO: UPF initialize...done (../src/upf/app.c:31)
+11/18 01:17:02.552: [upf] INFO: PFCP associated [10.33.33.12]:8805 (../src/upf/pfcp-sm.c:168)
+Open5GS daemon v2.7.6
+
+11/18 02:39:26.537: [app] INFO: Configuration: '/etc/open5gs/custom/upf.yaml' (../lib/app/ogs-init.c:144)
+11/18 02:39:26.537: [app] INFO: File Logging: '/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+11/18 02:39:26.603: [metrics] INFO: metrics_server() [http://upf.open5gs.org]:9090 (../lib/metrics/prometheus/context.c:297)
+11/18 02:39:26.603: [pfcp] INFO: pfcp_server() [10.33.33.4]:8805 (../lib/pfcp/path.c:30)
+11/18 02:39:26.603: [gtp] INFO: gtp_server() [10.33.33.4]:2152 (../lib/gtp/path.c:30)
+11/18 02:39:26.603: [app] INFO: UPF initialize...done (../src/upf/app.c:31)
+11/18 02:39:26.768: [upf] INFO: PFCP associated [10.33.33.13]:8805 (../src/upf/pfcp-sm.c:168)
+Open5GS daemon v2.7.6
+
+11/18 02:59:34.130: [app] INFO: Configuration: '/etc/open5gs/custom/upf.yaml' (../lib/app/ogs-init.c:144)
+11/18 02:59:34.130: [app] INFO: File Logging: '/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+11/18 02:59:34.168: [metrics] INFO: metrics_server() [http://upf.open5gs.org]:9090 (../lib/metrics/prometheus/context.c:297)
+11/18 02:59:34.168: [pfcp] INFO: pfcp_server() [10.33.33.4]:8805 (../lib/pfcp/path.c:30)
+11/18 02:59:34.168: [gtp] INFO: gtp_server() [10.33.33.4]:2152 (../lib/gtp/path.c:30)
+11/18 02:59:34.169: [app] INFO: UPF initialize...done (../src/upf/app.c:31)
+11/18 02:59:34.522: [upf] INFO: PFCP associated [10.33.33.12]:8805 (../src/upf/pfcp-sm.c:168)
