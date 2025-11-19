@@ -1,144 +1,188 @@
-# Introduction to the 5G O-RAN Simulation Lab
+# Open5GS 5G Core in Docker
 
-Welcome to this hands-on lab where we will build a complete 5G mobile network from scratch using open-source software. The main objective is to explore the **O-RAN (Open Radio Access Network)** architecture. O-RAN is a modern standard that aims to open up mobile networks, which were traditionally closed, single-vendor systems. It achieves this by dividing the base station (the antenna) into smaller components with standard interfaces. This allows network operators to mix and match hardware and software from different manufacturers, fostering innovation. The key division introduced by O-RAN is the **RU-DU-CU** architecture, which separates the functions of the radio access network.
+[Open5GS](https://github.com/open5gs/open5gs) 5G Core Network Functions images ready for Docker.
 
-To understand this architecture, let's break down its parts.
+This repository contains the Dockerfiles, Docker Compose files and Helm charts to deploy a configurable 5G Core.
 
-1. **The RU (Radio Unit):** This is the layer closest to the user, located in the antenna. Its main function is radio frequency (RF) processing, including analog-to-digital and digital-to-analog signal conversion, amplification, and the transmission/reception of radio waves. It is the direct interface with user devices (UEs).
+The repository uses the same release version tags as Open5GS, so to use an specific Open5GS version just select the appropiate tag.
 
-2. **The DU (Distributed Unit):** It handles real-time and latency-sensitive baseband processing functions, such as encoding/decoding, modulation/demodulation, and parts of the medium access control (MAC). It can be located at a cell site or a nearby data center. The DU connects to multiple RUs.
+The Docker images are available for `amd64/x86-64` and `arm64`:
+- in DockerHub `borieher/<nf_name>:<open5gs_version>`
+- in GitHub Container Registry `ghcr.io/borjis131/<nf_name>:<open5gs_version>`
 
-3. **The CU (Centralized Unit):** It performs upper-layer baseband functions and base station control, which are less latency-sensitive. This includes radio resource control (RRC), admission control, and mobility management functions. The CU connects to multiple DUs and, in turn, to the Core Network.
+> [!TIP]
+> You can use the tag `latest` to download the latest docker-open5gs version available.
+> Currently latest tag points to `v2.7.6`
 
-Every mobile network needs a central brain to manage users, security, and internet connectivity; this is called the **Core Network (or 5GC in 5G)**. In our lab, we'll be using **Open5GS**, an open-source project that implements a complete 5G Core. We chose it for its ease of use, stability, and because it's designed to run seamlessly in containers, simplifying deployment. The Core authorizes the user's device, known as the **User Equipment** (UE), which essentially authorizes your mobile phone to join the network.
+The Helm charts are available:
+- in DockerHub `registry-1.docker.io/borieher/<chart_name> --version <chart_version>`
 
-To simulate the radio network (the RU-DU-CU part), we'll be using **srsRAN**. This is an amazing open-source software project that implements the entire 4G and 5G radio protocol stack. In our exercise, one srsRAN component will act as a **gNB** (the 5G base station), combining the functions of the **CU and DU** into a single program. Another srsRAN component will simulate the **UE** (the phone). To simulate the **RU** and the air link, srsRAN uses an ingenious *driver*, ZMQ, which replaces the radio frequency with a local network connection between our programs.
+> [!NOTE]
+> The <chart_version> is not the same as the <open5gs_version>
 
-To build this complex environment on a single machine, we rely on **Docker**. This "container" technology allows us to package each component (the Core, the gNB, and the UE) into isolated software boxes. These boxes, or containers, are much lighter than virtual machines and ensure that one software's dependencies don't conflict with another's. All of this will run on our **host machine**, which is simply our physical computer (running a Linux operating system) that hosts the Docker software and all the containers that make up the network.
+## Configure it
 
-Once the network is up and running, we need to measure it. To do this, we'll use two essential tools. **Wireshark** is a "protocol analyzer" or *sniffer*, which allows us to capture and view every data packet flowing through the network; This is vital for debugging and understanding what the components are "talking" to each other. To generate traffic and measure performance, we'll use iperf3, a standard tool that acts as a speedometer to measure the maximum bandwidth our simulated network can handle.
+All the images (except `webui`) depend on the `base-open5gs` image to be built, after that each image is independent.
 
-The ultimate goal of these measurements is to evaluate performance and quality. We'll perform latency tests (also known as delay), which measures how long it takes for a packet to travel from the UE to the core and back; this is critical for interactive applications like online games. We'll also analyze QoS (Quality of Service), which is the network's ability to prioritize traffic. For example, a video call (sensitive to delay) should take priority over downloading a large file. Simulating and measuring this is fundamental to understanding how O-RAN architectures can deliver on the stringent performance promises of 5G.
+First, update the `.env` and `docker-bake.hcl` files with the desired values to use.
 
-## Prerequisites
+The `.env` file is used to build the images using Make or Docker Compose, as well as deploying in Docker Compose. The `docker-bake.hcl` file is used to build the images using bake.
 
-Before starting the lab build, ensure you have the following environment prepared on your host machine:
+`OPEN5GS_VERSION` is the version of Open5GS to use.
+- Accepted values are the tags, branches or commit IDs used in the Open5GS project
+- Default value: v2.7.6
+- Tested values: v2.5.5, v2.5.6, v2.5.8, v2.6.1, v2.6.2, v2.6.3, v2.6.4, v2.6.6, v2.7.0, v2.7.1, v2.7.2, v2.7.5, v2.7.6
 
-* **Operating System:** A host machine running **Linux**. Ubuntu 20.04 LTS or 22.04 LTS is recommended for optimal compatibility.
+`UBUNTU_VERSION` is the version of the ubuntu Docker image used as base for the containers.
+- Accepted values are the tags used by Ubuntu in Docker Hub
+- Default value: jammy
+- Tested values: focal, jammy
 
-* **Container Software:** **Docker** and **Docker Compose** must be installed and working. This is essential for managing the different network components in isolated environments. [Official installation guide.](https://docs.docker.com/engine/install)
+`MONGODB_VERSION` is the version of the mongo Docker image used as database for Open5GS.
+- Accepted values are the tags used by MongoDB in Docker Hub
+- Default value: The one specified in the `.env` file
+- Tested values: 3.6.8, 4.2, 6.0, 8.0
 
-* **Version Control:** **Git** is required to clone the Open5GS and srsRAN software repositories. [Official Installation Guide.](https://git-scm.com/install/linux)
-* **Building Tools:** You will need basic building tools (such as `build-essential` and `cmake` on Ubuntu) to compile srsRAN from source and build the Docker images.
+`NODE_VERSION` is the version of Node.js being used to build the Open5GS WebUI.
+- Accepted values are the tags used by Node in Docker Hub for its bookworm-slim image and the Node.js dependency of Open5GS WebUI
+- Default value: 20
+- Tested values: 20
 
-```sudo apt-get install cmake make gcc g++ build-essential pkg-config libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev```
+`DOCKER_HOST_IP` is the IP address of the host running Docker. This modifies the `advertise` field in the `upf.yaml` config file for this to work when exposing the Docker containers network.
 
-* **Basic Knowledge:** Familiarity with the **Linux terminal** (basic commands) and fundamental concepts of **IP networking** (addressing, subnets) is assumed.
+## Build it
 
-## O-RAN Architecture
+<details>
+<summary>Build it with Bake</summary>
 
-For this exercise, we will not build a complete O-RAN network with F1/E1/O1 interfaces, as our focus is on simulation and performance evaluation in a controlled environment. Instead, we will emulate a complete 5G architecture where srsRAN and Open5GS interact within containers.
+> Tip: This is the recommended way to build the project, you can build the images all at once with a single command taking advantage of docker buildx parallelism
 
-Our architecture will simulate the O-RAN partitioning as follows:
+> Note: This method uses the `docker-bake.hcl` file and requires `docker-buildx-plugin`
 
-* **Core (5GC):** We will use **Open5GS** (in a container). This project implements all the components of the 5G Core (AMF, SMF, UPF, etc.) and will act as the centralized "brain" of our network.
-
-* **CU + DU (Centralized and Distributed Unit):** The **gNB (5G Base Station) of srsRAN** (in a container) will act as a monolithic unit that combines the functions of the **CU and DU**. It will connect to the Open5GS Core via the standard NG interface.
-
-* **RU (Radio Unit):** The physical radio interface (the "air") will be simulated. We will use the **ZMQ (ZeroMQ)** driver from srsRAN. This driver acts as a "virtual RU" that replaces radio frequency (RF) transmission with a local network channel (a TCP socket).
-
-* **UE (User Equipment):** The **srsRAN UE** (in a container) will simulate the mobile device. Instead of using radio, it will connect directly to the gNB via the ZMQ channel, completing the simulated radio link.
-
-The following diagram illustrates how these containers will interact:
-![alt text](figures/diagramArchitecture.png)
-
-Aquí tienes la guía paso a paso para desplegar el Core Network.
-
------
-
-Here is the translation of the text into English, maintaining the original formatting:
-
-## Step 1: Deploying the Core Network (Open5GS)
-
-In this first step, we will deploy the "brain" of our 5G network. We will use **Open5GS** because it is a complete open-source implementation of the 5G Core, designed to be easily deployed using Docker.
-
-### 1\. Clone the Open5GS Repository
-
-The easiest way to deploy Open5GS is by using a repository prepared for deployment. This repository requires us to build the Docker images from the source, instead of downloading them.
-
-First, open a terminal on the host machine and clone the repository:
-
+From the top level directory of the repository run:
 ```bash
-git clone https://github.com/wocn-unicamp/5g-network-udelar.git
+docker buildx bake
 ```
 
-### 2\. Start the Core Services
+</details>
+<details>
+<summary>Build it with Make</summary>
 
-Navigate to the directory you just cloned and the `docker-open5gs` subfolder to start all the 5GC services (AMF, SMF, UPF, etc.).
+> Note: This method uses the `Makefile` and `.env` files
 
+From the top level directory of the repository run the following to create the `base-open5gs` image and all the Network Function images:
 ```bash
-cd 5g-network-udelar/docker-open5gs
+make all
 ```
 
-Compile the base image using the `make` command. This command compiles the main Open5GS source code and installs it into a clean Docker image (based on Ubuntu). It is required for all microservices (AMF, SMF, etc.).
+This will take a while.
 
+</details>
+<details>
+<summary>Build it with Docker Compose</summary>
+
+> Note: This method uses the `Makefile`, `.env` and `docker-compose.yaml` files
+
+Some deployments have the build instructions for the images (like the `basic` deployment), only depending of the `base-open5gs` image. Some other deployments download the images needed from container registries like Docker Hub or GitHub Container Registry (like the `network-slicing` deployment).
+
+First create the `base-open5gs` image, from the top level directory of the repository run:
 ```bash
 make base-open5gs
 ```
 
-Once the base image is built, we can bring up the entire network. The docker-compose.yml file located at `compose-files/metrics/docker-compose.yaml` is a configuration that brings up not only the 5G Core, but also the WebUI, a monitoring stack (Prometheus/Grafana), and a RAN simulator (UERANSIM).
-
+Then select the appropiate deployment (`basic`, `scp-model-d` or `roaming`). From the top level directory of the repository, run:
 ```bash
-docker compose -f compose-files/metrics/docker-compose.yaml --env-file=.env up -d
+# Example using the basic deployment
+docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env up -d
 ```
 
-Note:
+This command builds all the images for the deployment selected and then runs the deployment.
 
-* `docker compose` reads the `docker-compose.yml` file and brings up all the containers defined in it. The `-d` (detached) flag runs the process in the background.
-* The first time you run this, Docker will download all the necessary images. It may take a few minutes.
-* Tear down the basic deployment ```docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env down```
+</details>
+<details>
+<summary>Build the Helm charts</summary>
 
-### 3\. Verify the Deployment
+Use the following commands inside the `helm/` directory.
 
-You can verify that all the 5G Core containers are running correctly:
-
+First retrieve the dependencies of each chart individually, the `open5gs` chart must be the latest one, cause it depends on all the other charts:
 ```bash
-docker ps
+helm dependency build ./<chart_name>
 ```
 
-Note: You should see a long list of services in an `Up` state, including:
+You can also package the charts (it is not mandatory):
+```bash
+helm package ./<chart_name>
+```
 
-* webui (The graphical interface)
-* amf, smf, upf, nrf, db (The 5G Core)
-* prometheus, grafana (The monitoring stack)
+</details>
 
-### 4\. Register a Subscriber (UE)
+## Use it
 
-Your Core network is running, but it doesn't "know" any devices. We must manually register the phone (UE) that we will simulate later with srsRAN.
+<details>
+<summary>Use it with Docker Compose</summary>
 
-1. **Access the Web Interface:**
-    Open your web browser and go to `http://localhost:9999`. This is the Open5GS administration interface (WebUI). To log in, use: User: `admin` and Password: `1423`
+Update the `.env` file with the desired values to use:
 
-2. **Navigate to Subscribers:**
-    In the left-hand menu, click on **"Subscribers"**. You will see a list (probably empty).
+Then select the appropiate deployment and from the top level directory of the repository run:
+```bash
+# Run the basic deployment
+docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env up -d
 
-3. **Add a New Subscriber:**
-    Click the green **"Add"** button.
+# Tear down the basic deployment
+docker compose -f compose-files/basic/docker-compose.yaml --env-file=.env down
+```
 
-4. **Fill in the Subscriber's Data:**
-    You must fill in the fields with the exact values that our srsRAN UE will use. **It is crucial that this data matches.**
+</details>
+<details>
+<summary>Use it with Kubernetes</summary>
 
-    > **Important:** Copy and paste the following exact values:
-    > * **IMSI:** `999700000000001` (This is the subscriber's unique ID)
-    > * **Authentication (K):** `465B5CE8B199B49FAA5F0A2EE238A6BC`
-    > * **Authentication (OPc):** `E8ED289DEBA952E4EB36576D2F9C09A3`
-    > In the **"Slice"** section:
-    > * Click **"Add Slice"**.
-    > * **SST:** `1`
-    > * **SD:** `000001`
-    > * **Default Selection:** `Default`
-    > In the **"Access Point Names (APN)"** section:
-    > * Leave the default APN `internet`.
+You can download the packaged charts from the repository or you can use the ones built by yourself.
 
-5. **Save the Subscriber:**
-    Click **"Save"**.
+Current `CHART_VERSION` value for the Open5GS chart is 0.3.5, using `OPEN5GS_VERSION` v2.7.5 as default.
+The `CHART_VERSION` for individual charts is 0.3.4, using `OPEN5GS_VERSION` v2.7.5 as default.
+
+To download a chart:
+```bash
+helm pull oci://registry-1.docker.io/borieher/<chart_name> --version <CHART_VERSION>
+```
+
+To install a chart run:
+```bash
+helm install -n <namespace> <release_name> ./<chart_name>
+```
+
+You can provide your custom values using the helm flag `-f` and providing a `values.yaml` file:
+```bash
+helm install -n <namespace> -f values.yaml <release_name> ./<chart_name>
+```
+
+If the namespace does not exist, create it by using the helm flag `--create-namespace`.
+
+To uninstall a chart and remove a namespace run:
+```bash
+helm uninstall -n <namespace> <release_name>
+
+kubectl delete namespace <namespace>
+```
+
+</details>
+
+## Repository structure
+
+- `compose-files/` directory contains different docker compose deployments.
+- `configs/` directory contains the Open5GS configuration files for each docker compose deployment.
+- `docs/` directory contains the documentation for this project.
+- `images/` directory has each Network Function Dockerfile.
+- `misc/` contains examples and diagrams.
+
+### Overview of the basic deployment
+
+![Overview of the basic deployment](misc/diagrams/basic.png)
+
+The `basic` deployment is prepared to work with external gNBs, exposing:
+- `N2` control plane interface on the AMF using `SCTP port 38412`
+- `N3` user plane  interface on the UPF using `UDP port 2152`
+
+It also exposes the MongoDB database using `TCP port 27017`.
+
+Check `docs/` to see the full documentation for the different deployments.
