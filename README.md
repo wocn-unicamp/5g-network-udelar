@@ -1,18 +1,10 @@
 # Traditional 5G Network Lab
 
-Welcome to this hands-on lab where we will build a complete 5G mobile network from scratch using open-source software. The main objective is to explore the **O-RAN (Open Radio Access Network)** architecture. O-RAN is a modern standard that aims to open up mobile networks, which were traditionally closed, single-vendor systems. It achieves this by dividing the base station (the antenna) into smaller components with standard interfaces. This allows network operators to mix and match hardware and software from different manufacturers, fostering innovation. The key division introduced by O-RAN is the **RU-DU-CU** architecture, which separates the functions of the radio access network.
-
-To understand this architecture, let's break down its parts.
-
-1. **The RU (Radio Unit):** This is the layer closest to the user, located in the antenna. Its main function is radio frequency (RF) processing, including analog-to-digital and digital-to-analog signal conversion, amplification, and the transmission/reception of radio waves. It is the direct interface with user devices (UEs).
-
-2. **The DU (Distributed Unit):** It handles real-time and latency-sensitive baseband processing functions, such as encoding/decoding, modulation/demodulation, and parts of the medium access control (MAC). It can be located at a cell site or a nearby data center. The DU connects to multiple RUs.
-
-3. **The CU (Centralized Unit):** It performs upper-layer baseband functions and base station control, which are less latency-sensitive. This includes radio resource control (RRC), admission control, and mobility management functions. The CU connects to multiple DUs and, in turn, to the Core Network.
+Welcome to this hands-on lab where we will build a complete 5G mobile network from scratch using open-source software. 
 
 Every mobile network needs a central brain to manage users, security, and internet connectivity; this is called the **Core Network (or 5GC in 5G)**. In our lab, we'll be using **Open5GS**, an open-source project that implements a complete 5G Core. We chose it for its ease of use, stability, and because it's designed to run seamlessly in containers, simplifying deployment. The Core authorizes the user's device, known as the **User Equipment** (UE), which essentially authorizes your mobile phone to join the network.
 
-To simulate the radio network (the RU-DU-CU part), we'll be using **srsRAN**. This is an amazing open-source software project that implements the entire 4G and 5G radio protocol stack. In our exercise, one srsRAN component will act as a **gNB** (the 5G base station), combining the functions of the **CU and DU** into a single program. Another srsRAN component will simulate the **UE** (the phone). To simulate the **RU** and the air link, srsRAN uses an ingenious *driver*, ZMQ, which replaces the radio frequency with a local network connection between our programs.
+To implement the radio access network (the UE + RU + gNB part), we'll use **srsRAN**. This is an amazing open-source software project that implements the entire 4G and 5G radio protocol stack. In our exercise, one srsRAN component will act as a **gNB** (the 5G base station), combining the functions of the **CU and DU** into a single component. Another srsRAN component will simulate the **UE** (the user terminal). To simulate the **RU** and the air link, srsRAN uses an ingenious *driver*, GNURadio + ZMQ, which replaces the radio frequency with a local network connection between our programs.
 
 To build this complex environment on a single machine, we rely on **Docker**. This "container" technology allows us to package each component (the Core, the gNB, and the UE) into isolated software boxes. These boxes, or containers, are much lighter than virtual machines and ensure that one software's dependencies don't conflict with another's. All of this will run on our **host machine**, which is simply our physical computer (running a Linux operating system) that hosts the Docker software and all the containers that make up the network.
 
@@ -36,17 +28,17 @@ Before starting the lab build, ensure you have the following environment prepare
 
 * **Basic Knowledge:** Familiarity with the **Linux terminal** (basic commands) and fundamental concepts of **IP networking** (addressing, subnets) is assumed.
 
-## O-RAN Architecture
+## 5G Network Architecture
 
-For this exercise, we will not build a complete O-RAN network with F1/E1/O1 interfaces, as our focus is on simulation and performance evaluation in a controlled environment. Instead, we will emulate a complete 5G architecture where srsRAN and Open5GS interact within containers.
+For this exercise, our focus is on simulation and performance evaluation in a controlled environment. Instead, we will emulate a complete 5G architecture where srsRAN and Open5GS interact within containers.
 
-Our architecture will simulate the O-RAN partitioning as follows:
+Our architecture will simulate the 5G Network architecture as follows:
 
-* **Core (5GC):** We will use **Open5GS** (in a container). This project implements all the components of the 5G Core (AMF, SMF, UPF, etc.) and will act as the centralized "brain" of our network.
+* The **Core (5GC):** We will use **Open5GS** (in a container). This project implements all the components of the 5G Core (AMF, SMF, UPF, etc.) and will act as the centralized "brain" of our network.
 
-* **CU + DU (Centralized and Distributed Unit):** The **gNB (5G Base Station) of srsRAN** (in a container) will act as a monolithic unit that combines the functions of the **CU and DU**. It will connect to the Open5GS Core via the standard NG interface.
+* The **gNB (5G Base Station) of srsRAN** (in a container) will act as a monolithic unit that combines the functions of the **CU and DU**. It will connect to the Open5GS Core via the standard NG interface.
 
-* **RU (Radio Unit):** The physical radio interface (the "air") will be simulated. We will use the **ZMQ (ZeroMQ)** driver from srsRAN. This driver acts as a "virtual RU" that replaces radio frequency (RF) transmission with a local network channel (a TCP socket).
+* The **RU (Radio Unit):** The physical radio interface (the "air") will be simulated. We will use the **ZMQ (ZeroMQ)** driver from srsRAN. This driver acts as a "virtual RU" that replaces radio frequency (RF) transmission with a local network channel (a TCP socket).
 
 * **UE (User Equipment):** The **srsRAN UE** (in a container) will simulate the mobile device. Instead of using radio, it will connect directly to the gNB via the ZMQ channel, completing the simulated radio link.
 
@@ -55,9 +47,9 @@ The following diagram illustrates how these containers will interact:
 
 -----
 
-## Step 1: Deploying the Core Network (Open5GS) and RU-DU-CU Network
+## Step 1: Deploying the Core Network (Open5GS) and RAN Network
 
-In this first step, we will deploy the "brain" of our 5G network. We will use **Open5GS** as it is a complete open-source implementation of the 5G Core, designed to be easily deployed using Docker. Additionally, we will integrate the simulated access network (RU-DU-CU) using UERANSIM.
+In this first step, we will deploy the "brain" of our 5G network. We will use **Open5GS** as it is a complete open-source implementation of the 5G Core, designed to be easily deployed using Docker. Additionally, we will integrate the simulated radio access network (RU-DU-CU) using UERANSIM.
 
 ### 1\. Clone the Open5GS Repository
 
@@ -102,7 +94,7 @@ make base-open5gs
 
 *Note: This command downloads dependencies and compiles the Open5GS source code on a clean Ubuntu image. This step may take several minutes.*
 
-### 4\. Network Initialization (Core + RU-DU-CU)
+### 4\. Network Initialization (Core + RAN)
 
 Once the base image is created, we proceed to launch the full infrastructure. We will use the `docker-compose.yml` file located in `compose-files/minimal-network/`, which deploys:
 
