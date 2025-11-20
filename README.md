@@ -1,4 +1,4 @@
-# Introduction to the 5G O-RAN Simulation Lab
+# Traditional 5G Network Lab
 
 Welcome to this hands-on lab where we will build a complete 5G mobile network from scratch using open-source software. The main objective is to explore the **O-RAN (Open Radio Access Network)** architecture. O-RAN is a modern standard that aims to open up mobile networks, which were traditionally closed, single-vendor systems. It achieves this by dividing the base station (the antenna) into smaller components with standard interfaces. This allows network operators to mix and match hardware and software from different manufacturers, fostering innovation. The key division introduced by O-RAN is the **RU-DU-CU** architecture, which separates the functions of the radio access network.
 
