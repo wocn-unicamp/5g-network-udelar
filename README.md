@@ -38,7 +38,7 @@ Our architecture will simulate the 5G Network architecture as follows:
 
 * The **gNB (5G Base Station) of srsRAN** (in a container) will act as a monolithic unit that combines the functions of the **CU and DU**. It will connect to the Open5GS Core via the standard NG interface.
 
-* The **RU (Radio Unit):** The physical radio interface (the "air") will be simulated. We will use the **ZMQ (ZeroMQ)** driver from srsRAN. This driver acts as a "virtual RU" that replaces radio frequency (RF) transmission with a local network channel (a TCP socket).
+* The **RU (Radio Unit):** The physical radio interface (the "air") will be simulated. We will use the **ZMQ (ZeroMQ)** driver from srsRAN. This driver acts as a "virtual RU" that replaces radio frequency (RF) transmission with a local network channel (a TCP socket), which uses GNURadio to emulate the wireless channel.
 
 * **UE (User Equipment):** The **srsRAN UE** (in a container) will simulate the mobile device. Instead of using radio, it will connect directly to the gNB via the ZMQ channel, completing the simulated radio link.
 
