@@ -148,7 +148,7 @@ Although the network is active, the 5G Core will reject connections from unknown
       * **IMSI:** `001011234567892`
       * **Security Header:** Leave as default.
       * **Subscriber Key (K):** `00000000000000000000000000000000`
-      * **USIM Type:** `OPc` *(Note: Select OPc, not OP)*.
+      * **USIM Type:** `OPc` *(Note: Select OP, not OPc)*.
       * **Operator Key (OPc):** `00000000000000000000000000000000`
       * **AMF:** `8000`
 
